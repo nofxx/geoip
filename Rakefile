@@ -1,24 +1,25 @@
 require 'rake'
 require 'rake/clean'
-require 'rake/testtask'
+#require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 
-task :default => [:compile, :test]
+task :default => [:build, :download, :spec]
 
-CLEAN.add "geoip.{o,bundle,so,obj,pdb,lib,def,exp}"
-CLOBBER.add ['Makefile', 'mkmf.log','doc']
+CLEAN.add "ext/geoip.{o,bundle,so,obj,pdb,lib,def,exp}"
+CLOBBER.add ['ext/Makefile', 'ext/mkmf.log', 'doc']
+URL = "http://geolite.maxmind.com/download/geoip/database"
 
 Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_files.add ['README', 'geoip.c']
+  rdoc.rdoc_files.add ['README', 'ext/geoip.c']
   rdoc.main = "README" # page to start on
   rdoc.rdoc_dir = 'doc/' # rdoc output folder
 end
 
-Rake::TestTask.new do |t|
-  t.test_files = 'test.rb'
-  t.verbose = true
-end
+# Rake::TestTask.new do |t|
+#   t.test_files = ['test.rb']
+#   t.verbose = true
+# end
 
 spec = Gem::Specification.new do |s|
   s.name              = 'geoip-c'
@@ -42,9 +43,27 @@ Rake::GemPackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
-desc 'compile the extension'
-task(:compile => 'Makefile') { sh 'make' }
-file('Makefile' => "geoip.c") { ruby 'extconf.rb' }
+desc "Build the Native extension"
+task :build do
+  cd 'ext' do
+    ruby 'extconf.rb'
+    system 'make'
+  end
+end
+
+# desc 'compile the extension'
+# task(:compile => 'Makefile') { sh 'make' }
+# file('Makefile' => "geoip.c") { ruby 'extconf.rb' }
+
+desc "Downloads and uncompress GeoLiteCity"
+task :download do
+  unless File.exists?("GeoLiteCity.dat")
+    puts "Downloading geoip city..."
+    `wget #{URL}/GeoLiteCity.dat.gz`
+    `uncompress GeoLiteCity.dat.gz`
+  end
+end
+
 
 task :install => [:gem] do
   `env ARCHFLAGS="-arch i386" gem install pkg/geoip-c-0.5.0.gem -- --with-geoip-dir=/usr/local/GeoIP`

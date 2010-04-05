@@ -170,17 +170,17 @@ VALUE rb_geoip_country_look_up(VALUE self, VALUE addr) {
   GeoIP *gi;
   VALUE hash = Qnil;
   int country_id;
-  
+
   Check_Type(addr, T_STRING);
   Data_Get_Struct(self, GeoIP, gi);
   country_id = GeoIP_id_by_addr(gi, STR2CSTR(addr));
   if(country_id < 1) return Qnil;
-  
+
   hash = rb_hash_new();
   rb_hash_sset(hash, "country_code", rb_str_new2(GeoIP_country_code[country_id]));
   rb_hash_sset(hash, "country_code3", rb_str_new2(GeoIP_country_code3[country_id]));
   rb_hash_sset(hash, "country_name", rb_str_new2(GeoIP_country_name[country_id]));
-  
+
   return hash;
 }
 
@@ -200,9 +200,9 @@ static VALUE rb_geoip_org_new(int argc, VALUE *argv, VALUE self)
 
 /* Pass this function an IP address as a string, it will return a hash
  * containing all the information that the database knows about the IP:
- *    db.look_up('24.24.24.24') 
+ *    db.look_up('24.24.24.24')
  *    => {:name => "Road Runner"}
- */ 
+ */
 VALUE rb_geoip_org_look_up(VALUE self, VALUE addr) {
   GeoIP *gi;
   Check_Type(addr, T_STRING);
